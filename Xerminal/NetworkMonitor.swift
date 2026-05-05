@@ -11,9 +11,9 @@ final class NetworkMonitor {
     var onChange: (Bool) -> Void = { _ in }
 
     func start() {
-        monitor.pathUpdateHandler = { [weak self] path in
+        monitor.pathUpdateHandler = { path in
             let satisfied = path.status == .satisfied
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 guard let self else { return }
                 if self.lastSatisfied != satisfied {
                     self.lastSatisfied = satisfied

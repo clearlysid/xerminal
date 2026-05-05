@@ -97,6 +97,10 @@ struct AppSettings: Codable, Equatable {
     }
 }
 
+private extension Comparable {
+    func clamped(to r: ClosedRange<Self>) -> Self { min(max(self, r.lowerBound), r.upperBound) }
+}
+
 @MainActor
 final class SettingsStore {
     static let shared = SettingsStore()
@@ -115,6 +119,8 @@ final class SettingsStore {
         }
     }
 
+    static let didChangeNotification = Notification.Name("xerminal.settings.didChange")
+
     func update(_ mutate: (inout AppSettings) -> Void) {
         var s = current
         mutate(&s)
@@ -124,6 +130,24 @@ final class SettingsStore {
             UserDefaults.standard.set(data, forKey: key)
         }
         onChange(s)
+        NotificationCenter.default.post(name: SettingsStore.didChangeNotification, object: self)
+    }
+
+    static let minFontSize: CGFloat = 9
+    static let maxFontSize: CGFloat = 32
+
+    func cycleTheme() {
+        let names = Theme.bundled.map(\.name)
+        guard !names.isEmpty else { return }
+        let i = names.firstIndex(of: current.themeName) ?? 0
+        let next = names[(i + 1) % names.count]
+        update { $0.themeName = next }
+    }
+
+    func bumpFontSize(by delta: CGFloat) {
+        let target = (current.fontSize + delta)
+            .clamped(to: SettingsStore.minFontSize...SettingsStore.maxFontSize)
+        update { $0.fontSize = target }
     }
 
     /// Apply current theme/font/cursor to a TerminalView.

@@ -14,6 +14,7 @@ class ViewController: UIViewController, TerminalViewDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        overrideUserInterfaceStyle = .dark
         view.backgroundColor = .black
 
         tabBar.translatesAutoresizingMaskIntoConstraints = false
@@ -223,7 +224,7 @@ class ViewController: UIViewController, TerminalViewDelegate {
         active.terminalView.frame = container.bounds
         active.terminalView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         container.addSubview(active.terminalView)
-        active.terminalView.becomeFirstResponder()
+        _ = active.terminalView.becomeFirstResponder()
     }
 
     // MARK: - Host list / connect
@@ -322,6 +323,10 @@ class ViewController: UIViewController, TerminalViewDelegate {
             UIKeyCommand(input: "[", modifierFlags: [.command, .shift], action: #selector(cmdPrevTab)),
             UIKeyCommand(input: "]", modifierFlags: [.command, .shift], action: #selector(cmdNextTab)),
             UIKeyCommand(input: ",", modifierFlags: .command, action: #selector(cmdSettings)),
+            UIKeyCommand(input: "T", modifierFlags: [.command, .shift], action: #selector(cmdNextTheme)),
+            UIKeyCommand(input: "+", modifierFlags: .command, action: #selector(cmdFontUp)),
+            UIKeyCommand(input: "=", modifierFlags: .command, action: #selector(cmdFontUp)),
+            UIKeyCommand(input: "-", modifierFlags: .command, action: #selector(cmdFontDown)),
         ]
         for i in 1...9 {
             cmds.append(UIKeyCommand(input: "\(i)", modifierFlags: .command, action: #selector(cmdSwitchTab(_:))))
@@ -341,6 +346,12 @@ class ViewController: UIViewController, TerminalViewDelegate {
         tabs.switchTo(index: n - 1)
     }
     @objc private func cmdSettings() { presentSettingsSheet() }
+    @objc private func cmdNextTheme() {
+        SettingsStore.shared.cycleTheme()
+        Haptics.tap()
+    }
+    @objc private func cmdFontUp()   { SettingsStore.shared.bumpFontSize(by: +1) }
+    @objc private func cmdFontDown() { SettingsStore.shared.bumpFontSize(by: -1) }
 
     func presentSettingsSheet() {
         if let presented = presentedViewController {

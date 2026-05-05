@@ -20,6 +20,15 @@ final class SettingsViewController: UITableViewController {
         tableView.register(SliderCell.self, forCellReuseIdentifier: "slider")
         tableView.register(SegmentCell.self, forCellReuseIdentifier: "segment")
         tableView.register(ToggleCell.self, forCellReuseIdentifier: "toggle")
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(externalChange),
+            name: SettingsStore.didChangeNotification, object: nil)
+    }
+
+    @objc private func externalChange() {
+        tableView.reloadSections(
+            IndexSet([Section.theme.rawValue, Section.font.rawValue, Section.fontSize.rawValue]),
+            with: .none)
     }
 
     @objc private func close() { dismiss(animated: true) }

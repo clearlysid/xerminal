@@ -105,7 +105,7 @@ final class ConnectViewController: UIViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
         navigationItem.rightBarButtonItem = UIBarButtonItem(
-            title: "Connect", style: .done, target: self, action: #selector(connect))
+            title: "Connect", style: .prominent, target: self, action: #selector(connect))
 
         authSegment.selectedSegmentIndex = 1
         authSegment.addTarget(self, action: #selector(authChanged), for: .valueChanged)
