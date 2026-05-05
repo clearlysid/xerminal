@@ -9,6 +9,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard scene is UIWindowScene else { return }
+        window?.backgroundColor = SettingsStore.shared.current.theme.bg.uiColor
+        window?.overrideUserInterfaceStyle = .dark
         if SettingsStore.shared.current.requireAuthOnLaunch {
             showLock(scene: scene)
         }
