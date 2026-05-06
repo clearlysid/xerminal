@@ -12,7 +12,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.backgroundColor = SettingsStore.shared.current.theme.bg.uiColor
         window?.overrideUserInterfaceStyle = .dark
         if SettingsStore.shared.current.requireAuthOnLaunch {
-            showLock(scene: scene)
+            showLock(scene: scene, authenticatesOnAppear: true)
         }
         // Cold-launch deep link from Spotlight.
         if let activity = connectionOptions.userActivities.first(where: { $0.activityType == CSSearchableItemActionType }) {
@@ -30,14 +30,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         deliverPendingHostID()
     }
 
-    func sceneWillResignActive(_ scene: UIScene) {
+    func sceneWillEnterForeground(_ scene: UIScene) {}
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
         if SettingsStore.shared.current.requireAuthOnLaunch {
-            showLock(scene: scene)
+            showLock(scene: scene, authenticatesOnAppear: false)
         }
     }
-
-    func sceneWillEnterForeground(_ scene: UIScene) {}
-    func sceneDidEnterBackground(_ scene: UIScene) {}
 
     /// Active deep-link from Spotlight while running.
     func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
@@ -62,9 +61,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     // MARK: - Lock window
 
-    private func showLock(scene: UIScene) {
+    private func showLock(scene: UIScene, authenticatesOnAppear: Bool) {
         guard lockWindow == nil, let windowScene = scene as? UIWindowScene else { return }
         let lock = AppLockViewController()
+        lock.authenticatesOnAppear = authenticatesOnAppear
         lock.onUnlock = { [weak self] in
             self?.hideLock()
             self?.deliverPendingHostID()
