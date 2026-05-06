@@ -4,6 +4,7 @@ import LocalAuthentication
 final class AppLockViewController: UIViewController {
 
     var onUnlock: () -> Void = {}
+    var authenticatesOnAppear = true
 
     private let titleLabel: UILabel = {
         let l = UILabel()
@@ -53,7 +54,9 @@ final class AppLockViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        authenticate()
+        if authenticatesOnAppear {
+            authenticate()
+        }
     }
 
     @objc func authenticate() {
@@ -61,6 +64,34 @@ final class AppLockViewController: UIViewController {
         isAuthenticating = true
         let ctx = LAContext()
         ctx.localizedFallbackTitle = "Use Passcode"
+
+        var biometricError: NSError?
+        if ctx.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &biometricError) {
+            ctx.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Unlock xerminal") { [weak self] ok, error in
+                DispatchQueue.main.async {
+                    guard let self else { return }
+                    if ok {
+                        self.isAuthenticating = false
+                        self.onUnlock()
+                        return
+                    }
+
+                    let code = (error as? LAError)?.code
+                    if code == .userFallback || code == .biometryLockout {
+                        self.evaluateDevicePasscode()
+                    } else {
+                        self.isAuthenticating = false
+                    }
+                }
+            }
+            return
+        }
+
+        evaluateDevicePasscode()
+    }
+
+    private func evaluateDevicePasscode() {
+        let ctx = LAContext()
         var error: NSError?
         if ctx.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
             ctx.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Unlock xerminal") { [weak self] ok, _ in
